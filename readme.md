@@ -36,5 +36,8 @@ traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 46 byte packets
  1  10.0.2.252 (10.0.2.252)  3.338 ms  3.260 ms  2.083 ms  
  2  203.0.113.2 (203.0.113.2)  1.945 ms  3.667 ms  2.279 ms  
  3  1.1.1.1 (1.1.1.1)  2.059 ms  4.469 ms  2.556 ms  
-As I said,the 10.0.2/24 network first hopes to **Vyos-1**'s eth2.10 interface and then hops to **Vyos-3**.It doesn't hop to the route of the 10.0.1.0/24 network,thanks to the subinterface+vrrp configuration.  
+As I mentioned, the 10.0.2.0/24 network first routes through VyOS-1's eth2.10 interface and then hops to VyOS-3. Thanks to the subinterface and VRRP configuration, it avoids the 10.0.1.0/24 network's route.
 ### Which path is client pc's using to ping internet??
+I send a icmp echo request from alpine **Vyos-3**'s loopback adress,and the requests are send through **Vyos-2**then,**Vyos-3**.But for the reply,the replys didn'd follow the same route.They are going **Vyos-1** after that,and then the client from switches.
+![wireshark screenshot](https://github.com/fatihsecureshell/gns3labarcive/blob/main/asymetricrouting.png) 
+In a failover senario,both will be use the same route because we don't want to loss our packets.
