@@ -8,7 +8,7 @@ The following commands were used to verify that all links and services are opera
 To verify the VRRP configuration and the initial state of the network, I used the **show vrrp** command on **VyOS-1**. As expected, the router is in a **BACKUP** state for the 10.0.1.0/24 network and a **MASTER** state for the 10.0.2.0/24 network. This is shown in the output below:  
 10.0.1.254  eth2             10  BACKUP           10  7h49m54s  
 10.0.2.254  eth2.10          20  MASTER           20  7h49m50s  
-Packets coming from the 10.0.2.0/24 network are then routed to **VyOS-3**. I simulated the ISP's network with a loopback interface, but in an enterprise network, you can connect **VyOS-3** directly to the ISP's router.
+Packets from the 10.0.2.0/24 subnet are routed via VyOS-3, simulating the ISP network.
 As expected, the **show vrrp** output from **VyOS-2** confirms that its VRRP states are the opposite of **VyOS-1's**. This ensures that one router is always in the **BACKUP** state for each subnet's gateway.Here's the output:  
 10.0.1.254  eth2             10  MASTER           20  7h50m39s  
 10.0.2.254  eth2.10          20  BACKUP           10  6h32m21s  
@@ -38,6 +38,23 @@ traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 46 byte packets
  3  1.1.1.1 (1.1.1.1)  2.059 ms  4.469 ms  2.556 ms  
 As I mentioned, the 10.0.2.0/24 network first routes through VyOS-1's eth2.10 interface and then hops to VyOS-3. Thanks to the subinterface and VRRP configuration, it avoids the 10.0.1.0/24 network's route.
 ### Which path is client pc's using to ping internet??
-I send a icmp echo request from alpine **Vyos-3**'s loopback adress,and the requests are send through **Vyos-2**then,**Vyos-3**.But for the reply,the replys didn'd follow the same route.They are going **Vyos-1** after that,and then the client from switches.
+I send a icmp echo request from alpine **VyOS-3**'s loopback adress,and the requests are send through **Vyos-2**then,**VyOS-3**.But for the reply,the replies didn’t follow the same route.They are going **Vyos-1** after that,and then the client from switches.In the other route,this route is opposite.Requests are sent through **VyOS-1**, while replies come from **VyOS-2**.
 ![wireshark screenshot](https://github.com/fatihsecureshell/gns3labarcive/blob/main/asymetricrouting.png) 
+*Wireshark capture showing asymmetric path for 10.0.1.0/24 subnet.*
+![wireshark screenshot](https://github.com/fatihsecureshell/gns3labarcive/blob/main/asymetricroutingvlan10.png) 
+*Wireshark capture showing asymmetric path for 10.0.2.0/24 subnet.*  
 In a failover senario,both will be use the same route because we don't want to loss our packets.
+## Failover scenario
+In this scenario, the client is continuously pinging `1.1.1.1`.  (loopback of **VyOS-3**)
+To demonstrate failover, I will suspend the router used by the client in the middle of the ping process.  
+The goal is to observe how many packets are lost during the failover event.
+![failover](https://github.com/fatihsecureshell/gns3labarcive/blob/main/failoverscenario.gif)
+As shown in the video, 3–4 packets are lost when the router is down.If the router comes back up, it will regain the **MASTER** state in VRRP, and you will not lose any packets (literally 0).3 packet losses won't cause an outage of even 1 second. Unless you're working in a hyperscale datacenter, your company will be very pleased with such a low failover recovery.
+**You can find the whole configurations of VyOS routers in the repo,Arista's have only the switchport mode trunk+switchport trunk allowed vlan 1,10 configuration and the clients only have the gateway and ip configuration on /etc/network/intercaes.**
+## Summary
+
+- VRRP ensures seamless failover between VyOS-1 and VyOS-2.  
+- Asymmetric routing is verified using traceroute and Wireshark captures.  
+- During failover, only 3–4 packets are lost, with recovery almost instant.  
+- This demonstrates reliable load balancing and network redundancy in a lab environment.
+- If you have any questions (not limited to this lab), suggestions, or anything else, feel free to contact me. I didn't share this document to become famous, but if you've read this far,I really appreciate it.
