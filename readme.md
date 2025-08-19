@@ -49,7 +49,7 @@ In this scenario, the client is continuously pinging `1.1.1.1`.  (loopback of **
 To demonstrate failover, I will suspend the router used by the client in the middle of the ping process.  
 The goal is to observe how many packets are lost during the failover event.
 ![failover](https://github.com/fatihsecureshell/gns3labarcive/blob/main/failoverscenario.gif)  
-**11 packets transmitted,7 packets received** 
+*11 packets transmitted,7 packets received*  
 As shown in the video, 3–4 packets are lost when the router is down.If the router comes back up, it will regain the **MASTER** state in VRRP, and you will not lose any packets (literally 0).3 packet losses won't cause an outage of even 1 second. Unless you're working in a hyperscale datacenter, your company will be very pleased with such a low failover recovery.
 **You can find the whole configurations of VyOS routers in the repo,Arista's have only the switchport mode trunk+switchport trunk allowed vlan 1,10 configuration and the clients only have the gateway and ip configuration on /etc/network/intercaes.**
 ## Summary
